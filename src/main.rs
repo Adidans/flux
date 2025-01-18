@@ -3,6 +3,7 @@ mod lexer {
     pub mod token;
 }
 
+use lexer::lexer::Lexer;
 use lexer::token::{Token, TokenType};
 
 use clap::{Parser, Subcommand};
@@ -42,7 +43,11 @@ fn main() {
             let mut file_contents = String::new();
             match file.read_to_string(&mut file_contents) {
                 Ok(_) => {
-                    println!("{}", file_contents);
+                    let mut lexer = Lexer::new(file_contents);
+                    let tokens = lexer.tokenize();
+                    for token in tokens {
+                        println!("{:?}", token);
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error reading file: {}", e);
@@ -51,17 +56,7 @@ fn main() {
             }
         }
         None => {
-            // println!("Starting REPL");
-            let token = Token::new(TokenType::Integer(65), 1);
-            match token.token_type {
-                TokenType::Integer(i) => {
-                    println!("Integer: {} Line: {}", i, token.line);
-                }
-                _ => {
-                    println!("Not an integer");
-                }
-            }
-            println!("{:?}", token);
+            println!("Starting REPL");
         }
     }
 }
