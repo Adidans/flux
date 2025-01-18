@@ -1,3 +1,10 @@
+mod lexer {
+    pub mod lexer;
+    pub mod token;
+}
+
+use lexer::token::{Token, TokenType};
+
 use clap::{Parser, Subcommand};
 use std::fs::File;
 use std::io::Read;
@@ -44,8 +51,17 @@ fn main() {
             }
         }
         None => {
-            eprintln!("No command provided");
-            exit(1);
+            // println!("Starting REPL");
+            let token = Token::new(TokenType::Integer(65), 1);
+            match token.token_type {
+                TokenType::Integer(i) => {
+                    println!("Integer: {} Line: {}", i, token.line);
+                }
+                _ => {
+                    println!("Not an integer");
+                }
+            }
+            println!("{:?}", token);
         }
     }
 }
