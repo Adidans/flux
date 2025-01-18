@@ -28,7 +28,6 @@ pub enum TokenType {
     FloatType,
     IntType,
     BoolType,
-    NullType,
 
     // Literals
     Identifier(String),

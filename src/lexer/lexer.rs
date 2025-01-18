@@ -185,7 +185,6 @@ impl Lexer {
             "float" => TokenType::FloatType,
             "string" => TokenType::StringType,
             "bool" => TokenType::BoolType,
-            "null" => TokenType::NullType,
             _ => TokenType::Identifier(lexeme.to_string()),
         }
     }
