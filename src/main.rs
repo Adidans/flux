@@ -1,10 +1,6 @@
-mod lexer {
-    pub mod lexer;
-    pub mod token;
-}
+pub mod lexer;
 
-use lexer::lexer::Lexer;
-use lexer::token::{Token, TokenType};
+use lexer::Lexer;
 
 use clap::{Parser, Subcommand};
 use std::fs::File;

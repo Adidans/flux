@@ -1,3 +1,5 @@
+pub mod token;
+
 use crate::lexer::token::{Token, TokenType};
 
 pub struct Lexer {
