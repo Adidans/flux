@@ -1,5 +1,7 @@
+pub mod error;
 pub mod token;
 
+use crate::lexer::error::LexerError;
 use crate::lexer::token::{Token, TokenType};
 
 pub struct Lexer {
@@ -7,6 +9,8 @@ pub struct Lexer {
     start: usize,
     current: usize,
     line: i64,
+    column: usize,
+    pub errors: Vec<LexerError>,
 }
 
 impl Lexer {
@@ -16,6 +20,8 @@ impl Lexer {
             start: 0,
             current: 0,
             line: 1,
+            column: 1,
+            errors: Vec::new(),
         }
     }
 
@@ -24,8 +30,10 @@ impl Lexer {
 
         while !self.is_at_end() {
             self.start = self.current;
-            if let Some(token) = self.scan_token() {
-                tokens.push(token);
+            match self.scan_token() {
+                Ok(Some(token)) => tokens.push(token),
+                Ok(None) => {}
+                Err(error) => self.errors.push(error),
             }
         }
 
@@ -33,46 +41,46 @@ impl Lexer {
         tokens
     }
 
-    fn scan_token(&mut self) -> Option<Token> {
+    fn scan_token(&mut self) -> Result<Option<Token>, LexerError> {
         let c = self.advance();
 
         match c {
-            '(' => Some(self.make_token(TokenType::LeftParen)),
-            ')' => Some(self.make_token(TokenType::RightParen)),
-            '{' => Some(self.make_token(TokenType::LeftBrace)),
-            '}' => Some(self.make_token(TokenType::RightBrace)),
-            ',' => Some(self.make_token(TokenType::Comma)),
-            '.' => Some(self.make_token(TokenType::Dot)),
-            '-' => Some(self.make_token(TokenType::Minus)),
-            '+' => Some(self.make_token(TokenType::Plus)),
-            ';' => Some(self.make_token(TokenType::Semicolon)),
-            '*' => Some(self.make_token(TokenType::Star)),
+            '(' => Ok(Some(self.make_token(TokenType::LeftParen))),
+            ')' => Ok(Some(self.make_token(TokenType::RightParen))),
+            '{' => Ok(Some(self.make_token(TokenType::LeftBrace))),
+            '}' => Ok(Some(self.make_token(TokenType::RightBrace))),
+            ',' => Ok(Some(self.make_token(TokenType::Comma))),
+            '.' => Ok(Some(self.make_token(TokenType::Dot))),
+            '-' => Ok(Some(self.make_token(TokenType::Minus))),
+            '+' => Ok(Some(self.make_token(TokenType::Plus))),
+            ';' => Ok(Some(self.make_token(TokenType::Semicolon))),
+            '*' => Ok(Some(self.make_token(TokenType::Star))),
             '!' => {
                 if self.match_next('=') {
-                    Some(self.make_token(TokenType::BangEqual))
+                    Ok(Some(self.make_token(TokenType::BangEqual)))
                 } else {
-                    Some(self.make_token(TokenType::Bang))
+                    Ok(Some(self.make_token(TokenType::Bang)))
                 }
             }
             '=' => {
                 if self.match_next('=') {
-                    Some(self.make_token(TokenType::EqualEqual))
+                    Ok(Some(self.make_token(TokenType::EqualEqual)))
                 } else {
-                    Some(self.make_token(TokenType::Equal))
+                    Ok(Some(self.make_token(TokenType::Equal)))
                 }
             }
             '<' => {
                 if self.match_next('=') {
-                    Some(self.make_token(TokenType::LessEqual))
+                    Ok(Some(self.make_token(TokenType::LessEqual)))
                 } else {
-                    Some(self.make_token(TokenType::Less))
+                    Ok(Some(self.make_token(TokenType::Less)))
                 }
             }
             '>' => {
                 if self.match_next('=') {
-                    Some(self.make_token(TokenType::GreaterEqual))
+                    Ok(Some(self.make_token(TokenType::GreaterEqual)))
                 } else {
-                    Some(self.make_token(TokenType::Greater))
+                    Ok(Some(self.make_token(TokenType::Greater)))
                 }
             }
             '/' => {
@@ -80,32 +88,35 @@ impl Lexer {
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
-                    None
+                    Ok(None)
                 } else {
-                    Some(self.make_token(TokenType::Slash))
+                    Ok(Some(self.make_token(TokenType::Slash)))
                 }
             }
             // Handle whitespace
-            ' ' | '\r' | '\t' => None,
+            ' ' | '\r' | '\t' => Ok(None),
             '\n' => {
                 self.line += 1;
-                None
+                self.column = 0;
+                Ok(None)
             }
             // Handle numbers
-            '0'..='9' => Some(self.number()),
+            '0'..='9' => Ok(Some(self.number())),
             // Handle identifiers or keywords
-            'a'..='z' | 'A'..='Z' | '_' => Some(self.identifier()),
+            'a'..='z' | 'A'..='Z' | '_' => Ok(Some(self.identifier())),
             // Unrecognized character
-            _ => {
-                eprintln!("Unexpected character: '{}' on line {}", c, self.line);
-                None
-            }
+            _ => Err(LexerError::new(
+                &format!("Unexpected character: {}", c),
+                self.line,
+                self.column,
+            )),
         }
     }
 
     fn advance(&mut self) -> char {
         let char = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
+        self.column += 1;
         char
     }
 
@@ -117,6 +128,7 @@ impl Lexer {
             return false;
         }
         self.current += 1;
+        self.column += 1;
         true
     }
 

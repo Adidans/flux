@@ -41,8 +41,17 @@ fn main() {
                 Ok(_) => {
                     let mut lexer = Lexer::new(file_contents);
                     let tokens = lexer.tokenize();
-                    for token in tokens {
+                    for token in &tokens {
                         println!("{:?}", token);
+                    }
+                    for error in &lexer.errors {
+                        eprintln!(
+                            "Error: {} at line {}, column {}",
+                            error.message, error.line, error.column
+                        );
+                    }
+                    if !&lexer.errors.is_empty() {
+                        exit(1);
                     }
                 }
                 Err(e) => {
