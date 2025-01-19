@@ -8,6 +8,8 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::process::exit;
 
+use ariadne::{Label, Report, ReportKind, Source};
+
 /// Simple program to greet a person
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -29,6 +31,7 @@ fn main() {
 
     match &cli.command {
         Some(Commands::Tokenize { file }) => {
+            let file_name = file.file_name();
             let mut file = match File::open(file) {
                 Ok(file) => file,
                 Err(e) => {
@@ -44,11 +47,14 @@ fn main() {
                     for token in &tokens {
                         println!("{:?}", token);
                     }
-                    for error in &lexer.errors {
-                        eprintln!(
-                            "Error: {} at line {}, column {}",
-                            error.message, error.line, error.column
-                        );
+                    for _error in &lexer.errors {
+                        let _ = Report::build(ReportKind::Error, ("example.flux", 12..12))
+                            .with_message("Unexpected character")
+                            .finish()
+                            .eprint((
+                                "example.flux",
+                                Source::from(include_str!("../example.flux")),
+                            ));
                     }
                     if !&lexer.errors.is_empty() {
                         exit(1);

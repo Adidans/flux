@@ -43,6 +43,7 @@ impl Lexer {
 
     fn scan_token(&mut self) -> Result<Option<Token>, LexerError> {
         let c = self.advance();
+        let span_start = self.start;
 
         match c {
             '(' => Ok(Some(self.make_token(TokenType::LeftParen))),
@@ -109,6 +110,7 @@ impl Lexer {
                 &format!("Unexpected character: {}", c),
                 self.line,
                 self.column,
+                (span_start, self.current),
             )),
         }
     }
