@@ -1,5 +1,3 @@
-use ariadne::Span;
-
 #[derive(Debug, Clone)]
 pub struct LexerError {
     pub message: String,
