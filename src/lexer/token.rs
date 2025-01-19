@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum TokenType {
     // Single-character tokens
     LeftParen,
@@ -58,13 +59,19 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Token {
     pub token_type: TokenType,
+    pub lexeme: String,
     pub line: i64,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, line: i64) -> Self {
-        Token { token_type, line }
+    pub fn new(token_type: TokenType, lexeme: String, line: i64) -> Self {
+        Token {
+            token_type,
+            lexeme,
+            line,
+        }
     }
 }

@@ -27,7 +27,7 @@ impl Lexer {
             }
         }
 
-        tokens.push(Token::new(TokenType::Eof, self.line));
+        tokens.push(Token::new(TokenType::Eof, "EOF".to_string(), self.line));
         tokens
     }
 
@@ -127,7 +127,7 @@ impl Lexer {
     }
 
     fn make_token(&self, token_type: TokenType) -> Token {
-        Token::new(token_type, self.line)
+        Token::new(token_type, self.current_lexeme(), self.line)
     }
 
     fn current_lexeme(&self) -> String {
@@ -147,11 +147,15 @@ impl Lexer {
             }
 
             let lexeme = self.current_lexeme();
-            return Token::new(TokenType::Float(lexeme.parse().unwrap()), self.line);
+            return Token::new(TokenType::Float(lexeme.parse().unwrap()), lexeme, self.line);
         }
 
         let lexeme = self.current_lexeme();
-        Token::new(TokenType::Integer(lexeme.parse().unwrap()), self.line)
+        Token::new(
+            TokenType::Integer(lexeme.parse().unwrap()),
+            lexeme,
+            self.line,
+        )
     }
 
     fn identifier(&mut self) -> Token {
@@ -161,7 +165,7 @@ impl Lexer {
 
         let lexeme = self.current_lexeme();
         let token_type = self.keyword_or_identifier(&lexeme);
-        Token::new(token_type, self.line)
+        Token::new(token_type, lexeme, self.line)
     }
 
     fn keyword_or_identifier(&self, lexeme: &str) -> TokenType {
